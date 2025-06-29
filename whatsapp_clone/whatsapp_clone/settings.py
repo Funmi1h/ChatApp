@@ -72,7 +72,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'whatsapp_clone.wsgi.application'
+ASGI_APPLICATION = 'whatsapp_clone.asgi.application'
 
 
 # Database
@@ -87,6 +87,17 @@ DATABASES = {
         'HOST': config('DB_HOST'),
         'PORT': config('DB_PORT')
     }
+}
+
+
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('127.0.0.1', 6379)],
+        },
+    },
 }
 
 
