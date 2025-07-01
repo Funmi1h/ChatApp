@@ -7,12 +7,10 @@ from django.utils.translation import gettext_lazy as _
 
 
 class ForbiddenStartCharacterValidator:
-    def __init__(self, minlenght, maxlenght):
+    def __init__(self, minlenght= 3, maxlenght= 20):
         self.minlenght = minlenght
         self.maxlenght = maxlenght
-        minlenght = 3
-        maxlenght = 20
-        
+    
 
     def __call__(self, value):
         self.value = value
@@ -29,8 +27,7 @@ class ForbiddenStartCharacterValidator:
 
 
 class PasswordValidator:
-    def __init__(self, minlength):
-        self.minlenght= 8
+    def __init__(self, minlength = 8):
         self.minlength = minlength
 
     def __call__(self, password):
