@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     'channels',
     'chat',
     'authentication',
-    'phonenumber_field'
+    'phonenumber_field',
+    'core'
 ]
 
 MIDDLEWARE = [
@@ -60,7 +61,7 @@ ROOT_URLCONF = 'whatsapp_clone.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR/ 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -134,6 +135,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'authentication.User'
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
     'authentication.backend.PhoneNumberBackend'
 ]
+
+
+LOGIN_URL = 'login/'

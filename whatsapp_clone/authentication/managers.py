@@ -1,5 +1,4 @@
 from django.contrib.auth.models import BaseUserManager
-from .models import User
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.phonenumber import PhoneNumber
 

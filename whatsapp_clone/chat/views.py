@@ -1,3 +1,5 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
-# Create your views here.
+def chat_accueil(request):
+    return render(request, 'chat/chat_accueil.html')
+

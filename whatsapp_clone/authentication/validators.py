@@ -14,10 +14,10 @@ class ForbiddenStartCharacterValidator:
 
     def __call__(self, value):
         self.value = value
-        if not re.search(r'\s', value ):
+        if ' ' in value:
             raise ValidationError(_('Votre username ne doit pas contenir d\'espace'))
 
-        if  self.minlenght > len(value)  or self.maxlenght  >len(value) :
+        if not( self.minlenght < len(value)  or len(value) < self.maxlenght ):
             raise ValidationError(_('Votre username doit contenir entre 3 et 20 cractères'))
 
 
@@ -25,32 +25,38 @@ class ForbiddenStartCharacterValidator:
 
 
 
-
 class PasswordValidator:
-    def __init__(self, minlength = 8):
-        self.minlength = minlength
+    def validate(self, password, user=None):
+        # longueur minimale du mot de passe
+        if len(password) < 8:
+            raise ValidationError(
+                _("Le mot de passe doit contenir au moins 8 caractères."),
+                code='password_too_short',
+            )
 
-    def __call__(self, password):
-        self.password = password
-        # le mot de passe doit contenir au moins une lettre majuscule
-        if not any(password.isupper()):
-            raise ValidationError(_('Le mot de passe doit contenir au moins une lettre majuscule.'))
-        
-        # le mot de passe doit contenir au moins une lettre miniscule
-        if not any(password.islower()):
-            raise ValidationError(_('Le mot de passe doit contenir au moins une lettre minuscule.'))
-        
-        # le mot de passe doit contenir au moins minlength caracteres
-        if len(password) < self.minlenght:
-            raise ValidationError(_(f'Le mot de passe doit contenir au moins {self.minlenght}'))
+        # le mot de passe doit contenir une lettre majuscule minimum
+        if not re.search(r'[A-Z]', password):
+            raise ValidationError(
+                _("Le mot de passe doit contenir au moins une majuscule."),
+                code='password_no_upper',
+            )
 
-        # le mot de passe doit contenir au moins un chiffre
+        # au moins un chiffre
+
         if not re.search(r'\d', password):
-            raise ValidationError (_('Le mot de passe doit contenir au moins un chiffre'))
-        
-        # le mot de passe doit contenir au moins un caractere spécial
+            raise ValidationError(
+                _("Le mot de passe doit contenir au moins un chiffre."),
+                code='password_no_digit',
+            )
 
-        if not re.search(r'[^a-zA-Z0-9\s]', password):
-            raise ValidationError(_('Le mot de passe doit contenir au moins un caractère spécial')) 
+        # Caractère spécial
+        if not re.search(r'[!@#$%^&*()_+=\[{\]};:<>|./?,-]', password):
+            raise ValidationError(
+                _("Le mot de passe doit contenir au moins un caractère spécial."),
+                code='password_no_special',
+            )
 
-            
+    def get_help_text(self):
+        return _(
+            "Votre mot de passe doit contenir au moins 8 caractères, une majuscule, un chiffre et un caractère spécial."
+        )

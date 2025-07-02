@@ -4,16 +4,15 @@ from django.utils.translation import gettext_lazy as _
 from django import forms
 from phonenumber_field.formfields import PhoneNumberField
 from django.contrib.auth import authenticate
-
+from django.core.exceptions import ValidationError
 
 
 class LoginForm(forms.Form):
     numero_telephone = PhoneNumberField(label = _('Numéro de téléphone'))
     password = forms.CharField(max_length= 155, 
         label= _('Mot de passe'), 
-        widget= forms.PasswordInput(attrs= {
-            'placeholder' : _('Votre mot de passe')
-        }))
+        widget= forms.PasswordInput()
+    )
 
     # init pour personnaliser le comportement du formulaire des sa création
     # init sert a initialiser une instance de class
@@ -22,28 +21,49 @@ class LoginForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
+
+
     def clean(self):
         cleaned_data = super().clean()
         numero_telephone = cleaned_data.get('numero_telephone')
         password = cleaned_data.get('password')
 
+
+        # Vérifier les identifiants sans connecter directement l'utilisateur
         if  numero_telephone and password:
             self.user = authenticate(
                 request= request,
                 numero_telephone = numero_telephone
             )
-    
+
+        # Gérer les résultats de l'authentification si les identifiants ne correspondent pas a un utilisateur
+        if self.user is None:
+            raise ValidationError(
+                _('Ton numéro de téléphone et/ou ton mot de passe est invalide(s)'),
+                code='invalid_login'
+                )
+        
+
+        #Récupérer l'utilisateur authentifié apres que le form.is_valid() est True
+
+    def get_user(self):
+        return getattr(self, 'user', None)
+
 
 
 class SignUpForm(forms.ModelForm):
 
     confirm_password = forms.CharField(
         max_length= 123,
+        widget= forms.PasswordInput(),
+        required= True
     )
     class Meta:
         model = User
         fields = ['numero_telephone', 'username', 'last_name', 'first_name', 'password']
 
+    
+    
 
         labels = {
             'numero_telephone': 'Numéro de téléphone',
@@ -66,10 +86,13 @@ class SignUpForm(forms.ModelForm):
                 'last_name': forms.TextInput(),
                 'first_name': forms.TextInput(),
                 'password': forms.PasswordInput(),
-                'confirm_password': forms.PasswordInput()
         }
 
-    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['numero_telephone'].required = True
+        self.fields['username'].required = True
+        self.fields['password'].required = True
     
     def clean(self):
 
@@ -77,13 +100,13 @@ class SignUpForm(forms.ModelForm):
         # Unicité du numéro de téléphone
         numero = cleaned_data.get('numero_telephone')
         if User.objects.filter(numero_telephone = numero).exists():
-            raise forms.ValidationError (_('Ce numéro de téléphone est déjà utilisé'))
+            self.add_error('numero_telephone', _('Ce numéro de téléphone est déjà utilisé'))
         
         #correspondance des mots de passe
         password = cleaned_data.get('password')
         confirm_password = cleaned_data.get('confirm_password')
 
         if password != confirm_password:
-            raise forms.ValidationError(_('Les mots de passe ne correspondent pas'))
+            self.add_error('confirm_password',_('Les mots de passe ne correspondent pas'))
 
-  
+        return cleaned_data
